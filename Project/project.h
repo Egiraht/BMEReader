@@ -5,6 +5,8 @@
 #include <stdbool.h>
 
 #include "usbd_cdc_if.h"
+#include "i2c.h"
+#include "bme280.h"
 
 /**
  * @brief Defines the maximal length of the message that can be processed.
