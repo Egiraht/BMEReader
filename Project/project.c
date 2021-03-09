@@ -3,17 +3,17 @@
 /**
  * @brief Stores the BME280 trimming parameters.
  */
-static BME280_TrimmingParams trimmingParams;
+BME280_TrimmingParams Project_TrimmingParams;
 
 /**
  * @brief Indicates if the BME280 device has been successfully initialized.
  */
-static bool Project_IsBme280Initialized = false;
+bool Project_IsBme280Initialized = false;
 
 /**
  * @brief Forces the USB device re-enumeration at the host.
  */
-static void Project_ReEnumerateUsb()
+void Project_ReEnumerateUsb()
 {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
   LL_GPIO_ResetOutputPin(DM_GPIO_Port, DM_Pin);
@@ -40,7 +40,7 @@ void Project_PreInit()
  * @brief Initializes the BME280 sensor.
  * @return <i>true</i> on successful device initialization, otherwise <i>false</i>.
  */
-static bool Project_Bme280Init()
+bool Project_Bme280Init()
 {
   BME280_Config config = {
     .mode = BME280_MODE_NORMAL,
@@ -57,7 +57,7 @@ static bool Project_Bme280Init()
 
   LL_mDelay(1);
 
-  if (!BME280_GetTrimmingParams(I2C1, &trimmingParams) || !BME280_SetConfig(I2C1, &config))
+  if (!BME280_GetTrimmingParams(I2C1, &Project_TrimmingParams) || !BME280_SetConfig(I2C1, &config))
     return false;
 
   Project_IsBme280Initialized = true;
@@ -94,32 +94,13 @@ inline bool Project_SendCdcMessage(const char *string, uint16_t length)
 
 /**
  * @brief Processes the provided command message.
- * @param command The zero-terminated string containing the command message to process.
+ * @param command A pointer to the string containing the command message to process.
  */
 static void Project_ProcessCommand(const char *command)
 {
-  char response[MAX_RESPONSE_MESSAGE_LENGTH + 1];
-  BME280_Measurement measurement;
-
-  if (strcasecmp(command, "get") == 0)
-  {
-    if (!Project_IsBme280Initialized)
-      sprintf(response, "ERROR; The BME280 device failed to initialize\n");
-    else
-    {
-      BME280_GetMeasurement(I2C1, &trimmingParams, &measurement);
-
-      // Converting Pa to mmHg.
-      measurement.pressure *= 0.007500617F;
-
-      sprintf(response, "OK; Last measurement: P = %f mmHg, T = %f degC, H = %f %%\n",
-        measurement.pressure, measurement.temperature, measurement.humidity);
-    }
-  }
-  else
-    sprintf(response, "ERROR; Unknown command: %s\n", command);
-
-  Project_SendCdcMessage(&response[0], strlen(response));
+  char response[CONFIG_MAX_RESPONSE_MESSAGE_LENGTH + 1];
+  if (Command_ProcessMessage(command, &response[0]))
+    Project_SendCdcMessage(&response[0], strlen(response));
 }
 
 /**
@@ -129,7 +110,7 @@ static void Project_ProcessCommand(const char *command)
  */
 void Project_CdcMessageReceived(const char *string, uint16_t length)
 {
-  static char commandBuffer[MAX_COMMAND_MESSAGE_LENGTH + 1];
+  static char commandBuffer[CONFIG_MAX_COMMAND_MESSAGE_LENGTH + 1];
   static int16_t commandBufferIndex = 0;
 
   for (uint16_t index = 0; index < length; index++)
@@ -140,7 +121,7 @@ void Project_CdcMessageReceived(const char *string, uint16_t length)
       commandBufferIndex = 0;
       Project_ProcessCommand(&commandBuffer[0]);
     }
-    else if (commandBufferIndex <= MAX_COMMAND_MESSAGE_LENGTH)
+    else if (commandBufferIndex <= CONFIG_MAX_COMMAND_MESSAGE_LENGTH)
       commandBuffer[commandBufferIndex++] = string[index];
   }
 }
