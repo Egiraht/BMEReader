@@ -102,8 +102,8 @@ inline bool Project_SendCdcMessage(const char *string, uint16_t length)
 static void Project_ProcessCommand(const char *command)
 {
   char response[CONFIG_MAX_RESPONSE_MESSAGE_LENGTH + 1];
-  if (Command_ProcessMessage(command, &response[0]))
-    Project_SendCdcMessage(&response[0], strlen(response));
+  Command_ProcessMessage(command, &response[0]);
+  Project_SendCdcMessage(&response[0], strlen(response));
 }
 
 /**

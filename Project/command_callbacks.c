@@ -1,6 +1,10 @@
-#include "command_callbacks.h"
+#include "command.h"
+#include "project.h"
 
 #pragma ide diagnostic ignored "OCUnusedMacroInspection"
+
+#define STR_EQUAL(str1, str2) (strcasecmp(str1, str2) == 0)
+#define STR_EMPTY(str) (strlen(str) == 0)
 
 #define OK_RESPONSE "OK\n"
 #define OK_RESPONSE_FORMAT(format) "OK; " format "\n"
@@ -12,22 +16,11 @@
 #define INVALID_VALUE_RANGE_RESPONSE_FORMAT(param, min, max) INVALID_VALUE_RESPONSE_FORMAT(param "; Allowed range: " min "-" max)
 
 /**
- * @brief The array of available command names that should be matched by the request.
- *   The names are case insensitive.
- * @see <i>Command_Index</i>
- * @see <i>Command_Bindings</i>
- */
-char *Command_Names[COMMAND_INDICES_COUNT] = {
-  [COMMAND_INDEX_ID] = "Id",
-  [COMMAND_INDEX_MEASURE] = "Measure"
-};
-
-/**
  * @brief The default callback for unknown commands.
  * @param commandDescriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void CommandCallback_Unknown(const Command_Descriptor *commandDescriptor, char *response)
+void UnknownCommand(const Command_Descriptor *commandDescriptor, char *response)
 {
   sprintf(response, INVALID_COMMAND_RESPONSE_FORMAT("%s"), commandDescriptor->name);
 }
@@ -37,7 +30,7 @@ void CommandCallback_Unknown(const Command_Descriptor *commandDescriptor, char *
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void CommandCallback_Id(__unused const Command_Descriptor *descriptor, char *response)
+void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
 {
   sprintf(response, OK_RESPONSE_FORMAT("%s; Version: %s; SN: %08lX%08lX%08lX"), PROJECT_NAME, PROJECT_VERSION,
     LL_GetUID_Word2(), LL_GetUID_Word1(), LL_GetUID_Word0());
@@ -48,7 +41,7 @@ void CommandCallback_Id(__unused const Command_Descriptor *descriptor, char *res
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void CommandCallback_Measure(const Command_Descriptor *descriptor, char *response)
+void MeasureCommand(const Command_Descriptor *descriptor, char *response)
 {
   BME280_Config config;
   BME280_Measurement measurement;
@@ -76,14 +69,17 @@ void CommandCallback_Measure(const Command_Descriptor *descriptor, char *respons
     sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param, "P, T, H, All");
 }
 
-/**
- * @brief The array that establishes the bindings between the commands indices and the corresponding command callback
- *   pointers of type <i>CommandCallback</i> to be invoked on the corresponding command request.
- * @see <i>Command_Index</i>
- * @see <i>Command_Names</i>
- */
-Command_Callback Command_Bindings[COMMAND_INDICES_COUNT] = {
-  [COMMAND_INDEX_UNKNOWN] = CommandCallback_Unknown,
-  [COMMAND_INDEX_ID] = CommandCallback_Id,
-  [COMMAND_INDEX_MEASURE] = CommandCallback_Measure
+const Command_Callback Command_DefaultCallback = UnknownCommand;
+
+const Command_Binding Command_Bindings[] = {
+  {
+    .commandName = "Id",
+    .commandCallback = IdCommand
+  },
+  {
+    .commandName = "Measure",
+    .commandCallback = MeasureCommand
+  }
 };
+
+const uint32_t Command_BindingsCount = sizeof(Command_Bindings) / sizeof(Command_Binding);
