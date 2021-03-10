@@ -6,11 +6,6 @@
 BME280_TrimmingParams Project_TrimmingParams;
 
 /**
- * @brief Indicates if the BME280 device has been successfully initialized.
- */
-bool Project_IsBme280Initialized = false;
-
-/**
  * @brief Forces the USB device re-enumeration at the host.
  */
 void Project_ReEnumerateUsb()
@@ -55,12 +50,20 @@ bool Project_Bme280Init()
   if (BME280_GetID(I2C1) != 0x60 || !BME280_Reset(I2C1))
     return false;
 
-  LL_mDelay(1);
+  uint16_t attempts = 100;
+  BME280_Status status;
+  do
+  {
+    if (!BME280_GetStatus(I2C1, &status))
+      return false;
+  }
+  while (status.isMemoryUpdating && --attempts);
+  if (!attempts)
+    return false;
 
   if (!BME280_GetTrimmingParams(I2C1, &Project_TrimmingParams) || !BME280_SetConfig(I2C1, &config))
     return false;
 
-  Project_IsBme280Initialized = true;
   return true;
 }
 

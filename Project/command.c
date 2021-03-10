@@ -1,10 +1,8 @@
 #include "command.h"
 #include "command_callbacks.h"
 
-#define COMMAND_STR_EQUAL(str1, str2) (strcasecmp(str1, str2) == 0)
-#define COMMAND_STR_EMPTY(str) (strlen(str) == 0)
-#define _COMMAND_TO_STR(s) #s
-#define COMMAND_TO_STR(s) _COMMAND_TO_STR(s)
+#define _TO_STR(s) #s
+#define TO_STR(s) _TO_STR(s)
 
 /**
  * @brief Parses the command message.
@@ -15,22 +13,22 @@
  */
 void Command_Parse(const char *command, Command_Descriptor *descriptor)
 {
-  descriptor->commandIndex = COMMAND_UNKNOWN;
+  descriptor->index = COMMAND_INDEX_UNKNOWN;
   sscanf(command,
-    "%" COMMAND_TO_STR(CONFIG_MAX_COMMAND_NAME_LENGTH) "s"
-    "%" COMMAND_TO_STR(CONFIG_MAX_COMMAND_PARAM_LENGTH) "s"
-    "%" COMMAND_TO_STR(CONFIG_MAX_COMMAND_VALUE_LENGTH) "s",
-    descriptor->command, descriptor->param, descriptor->value);
+    "%" TO_STR(CONFIG_MAX_COMMAND_MESSAGE_LENGTH) "s"
+    "%" TO_STR(CONFIG_MAX_COMMAND_MESSAGE_LENGTH) "s"
+    "%" TO_STR(CONFIG_MAX_COMMAND_MESSAGE_LENGTH) "s",
+    descriptor->name, descriptor->param, descriptor->value);
 
-  if (COMMAND_STR_EMPTY(descriptor->command))
+  if (STR_EMPTY(descriptor->name))
     return;
 
   // Searching for the matching command index.
-  for (uint32_t counter = 0; counter < COMMANDS_COUNT; counter++)
+  for (uint32_t counter = 0; counter < COMMAND_INDICES_COUNT; counter++)
   {
-    if (COMMAND_STR_EQUAL(descriptor->command, Command_Names[counter]))
+    if (STR_EQUAL(descriptor->name, Command_Names[counter]))
     {
-      descriptor->commandIndex = counter;
+      descriptor->index = counter;
       break;
     }
   }
@@ -43,12 +41,17 @@ void Command_Parse(const char *command, Command_Descriptor *descriptor)
  */
 bool Command_ProcessMessage(const char *commandMessage, char *responseMessage)
 {
-  if (COMMAND_STR_EMPTY(commandMessage))
+  if (STR_EMPTY(commandMessage))
     return false;
 
   // Parsing the request and invoking the necessary command callback using the parsed command index.
-  Command_Descriptor commandDescriptor;
+  Command_Descriptor commandDescriptor = {
+    .index = COMMAND_INDEX_UNKNOWN,
+    .name = "",
+    .param = "",
+    .value = ""
+  };
   Command_Parse(commandMessage, &commandDescriptor);
-  Command_Bindings[commandDescriptor.commandIndex](&commandDescriptor, responseMessage);
+  Command_Bindings[commandDescriptor.index](&commandDescriptor, responseMessage);
   return true;
 }

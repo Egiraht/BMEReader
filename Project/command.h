@@ -6,6 +6,9 @@
 
 #include "config.h"
 
+#define STR_EQUAL(str1, str2) (strcasecmp(str1, str2) == 0)
+#define STR_EMPTY(str) (strlen(str) == 0)
+
 /**
  * @brief Defines the parsed command descriptor structure.
  */
@@ -13,24 +16,24 @@ typedef struct Command_Descriptor
 {
   /**
    * @brief The found index of the command.
-   * @see <i>CommandIndex</i> enumeration.
+   * @see <i>Command_Index</i>
    */
-  uint32_t commandIndex;
+  uint32_t index;
 
   /**
    * @brief The command name string.
    */
-  char command[CONFIG_MAX_COMMAND_NAME_LENGTH + 1];
+  char name[CONFIG_MAX_COMMAND_MESSAGE_LENGTH + 1];
 
   /**
    * @brief The command parameter string.
    */
-  char param[CONFIG_MAX_COMMAND_PARAM_LENGTH + 1];
+  char param[CONFIG_MAX_COMMAND_MESSAGE_LENGTH + 1];
 
   /**
    * @brief The command value string.
    */
-  char value[CONFIG_MAX_COMMAND_VALUE_LENGTH + 1];
+  char value[CONFIG_MAX_COMMAND_MESSAGE_LENGTH + 1];
 } Command_Descriptor;
 
 /**

@@ -77,9 +77,9 @@ void Error_Handler(void);
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin LL_GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
-#define SCL_Pin LL_GPIO_PIN_6
+#define SCL_Pin LL_GPIO_PIN_8
 #define SCL_GPIO_Port GPIOB
-#define SDA_Pin LL_GPIO_PIN_7
+#define SDA_Pin LL_GPIO_PIN_9
 #define SDA_GPIO_Port GPIOB
 void   MX_GPIO_Init(void);
 void   MX_I2C1_Init(void);

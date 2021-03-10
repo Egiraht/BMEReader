@@ -21,7 +21,6 @@
 #define PROJECT_VERSION "1.0"
 
 extern BME280_TrimmingParams Project_TrimmingParams;
-extern bool Project_IsBme280Initialized;
 
 void Project_ReEnumerateUsb();
 void Project_PreInit();

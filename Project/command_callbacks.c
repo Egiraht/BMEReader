@@ -14,12 +14,12 @@
 /**
  * @brief The array of available command names that should be matched by the request.
  *   The names are case insensitive.
- * @see Command_Index
- * @see Command_Bindings
+ * @see <i>Command_Index</i>
+ * @see <i>Command_Bindings</i>
  */
-char *Command_Names[COMMANDS_COUNT] = {
-  [COMMAND_ID] = "id",
-  [COMMAND_MEASURE] = "meas"
+char *Command_Names[COMMAND_INDICES_COUNT] = {
+  [COMMAND_INDEX_ID] = "Id",
+  [COMMAND_INDEX_MEASURE] = "Measure"
 };
 
 /**
@@ -29,7 +29,7 @@ char *Command_Names[COMMANDS_COUNT] = {
  */
 void CommandCallback_Unknown(const Command_Descriptor *commandDescriptor, char *response)
 {
-  sprintf(response, INVALID_COMMAND_RESPONSE_FORMAT("%s"), commandDescriptor->command);
+  sprintf(response, INVALID_COMMAND_RESPONSE_FORMAT("%s"), commandDescriptor->name);
 }
 
 /**
@@ -48,33 +48,42 @@ void CommandCallback_Id(__unused const Command_Descriptor *descriptor, char *res
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void CommandCallback_Measure(__unused const Command_Descriptor *descriptor, char *response)
+void CommandCallback_Measure(const Command_Descriptor *descriptor, char *response)
 {
-  if (!Project_IsBme280Initialized)
-  {
-    if (!Project_Bme280Init())
-      sprintf(response, ERROR_RESPONSE_FORMAT("Failed to initialize the BME280"));
-  }
-
+  BME280_Config config;
   BME280_Measurement measurement;
-  if (!BME280_GetMeasurement(I2C1, &Project_TrimmingParams, &measurement))
+  if (!BME280_GetConfig(I2C1, &config) ||
+    (config.mode != BME280_MODE_NORMAL && !Project_Bme280Init()) ||
+    !BME280_GetMeasurement(I2C1, &Project_TrimmingParams, &measurement))
+  {
     sprintf(response, ERROR_RESPONSE_FORMAT("Failed to communicate with the BME280"));
+    return;
+  }
 
   // Converting Pa to mmHg.
   measurement.pressure *= 0.007500617F;
 
-  sprintf(response, OK_RESPONSE_FORMAT("P = %f mmHg; T = %f degC; H = %f%%"),
-    measurement.pressure, measurement.temperature, measurement.humidity);
+  if (STR_EQUAL(descriptor->param, "all"))
+    sprintf(response, OK_RESPONSE_FORMAT("P = %f mmHg; T = %f degC; H = %f %%"),
+      measurement.pressure, measurement.temperature, measurement.humidity);
+  else if (STR_EQUAL(descriptor->param, "p"))
+    sprintf(response, OK_RESPONSE_FORMAT("%f mmHg"), measurement.pressure);
+  else if (STR_EQUAL(descriptor->param, "t"))
+    sprintf(response, OK_RESPONSE_FORMAT("%f degC"), measurement.temperature);
+  else if (STR_EQUAL(descriptor->param, "h"))
+    sprintf(response, OK_RESPONSE_FORMAT("%f %%"), measurement.humidity);
+  else
+    sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param, "P, T, H, All");
 }
 
 /**
  * @brief The array that establishes the bindings between the commands indices and the corresponding command callback
  *   pointers of type <i>CommandCallback</i> to be invoked on the corresponding command request.
- * @see Command_Index
- * @see Command_Names
+ * @see <i>Command_Index</i>
+ * @see <i>Command_Names</i>
  */
-Command_Callback Command_Bindings[COMMANDS_COUNT] = {
-  [COMMAND_UNKNOWN] = CommandCallback_Unknown,
-  [COMMAND_ID] = CommandCallback_Id,
-  [COMMAND_MEASURE] = CommandCallback_Measure
+Command_Callback Command_Bindings[COMMAND_INDICES_COUNT] = {
+  [COMMAND_INDEX_UNKNOWN] = CommandCallback_Unknown,
+  [COMMAND_INDEX_ID] = CommandCallback_Id,
+  [COMMAND_INDEX_MEASURE] = CommandCallback_Measure
 };

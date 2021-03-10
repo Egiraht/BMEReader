@@ -7,7 +7,7 @@ volatile uint8_t BME280_address = 0x76;
 
 uint8_t BME280_GetID(I2C_TypeDef *i2c)
 {
-  uint8_t address = 0xD0;
+  uint8_t address = 0xD0;   // id
   uint8_t id;
 
   if (I2C_Write(i2c, BME280_address, &address, sizeof(address), false) &&
@@ -20,20 +20,18 @@ uint8_t BME280_GetID(I2C_TypeDef *i2c)
 
 bool BME280_Reset(I2C_TypeDef *i2c)
 {
-  // "reset" register address and data.
-  uint8_t resetData[2] = {0xE0, 0xB6};
+  uint8_t resetData[2] = {0xE0, 0xB6};  // reset = 0xB6
   return I2C_Write(i2c, BME280_address, &resetData[0], 2, true);
 }
 
 bool BME280_SetConfig(I2C_TypeDef *i2c, BME280_Config *config)
 {
-  // "config", "ctrl_hum", and "ctrl_meas" registers addresses and data.
   uint8_t configData[6] = {
-    0xF5,
+    0xF5,   // config
     (config->standbyTime & 0x07) << 5 | (config->filter & 0x07) << 2 | (config->useSPI3WireMode ? 0x01 : 0x00),
-    0xF2,
+    0xF2,   // ctrl_hum
     config->humidityOversampling & 0x07,
-    0xF4,
+    0xF4,   // ctrl_meas
     (config->temperatureOversampling & 0x07) << 5 | (config->pressureOversampling & 0x07) << 2 | (config->mode & 0x03)
   };
 
@@ -42,8 +40,8 @@ bool BME280_SetConfig(I2C_TypeDef *i2c, BME280_Config *config)
 
 bool BME280_GetConfig(I2C_TypeDef *i2c, BME280_Config *config)
 {
-  uint8_t startAddress = 0xF2;
-  uint8_t data[4];
+  uint8_t startAddress = 0xF2;  // ctrl_hum
+  uint8_t data[4];              // ctrl_hum .. config
 
   if (!I2C_Write(i2c, BME280_address, &startAddress, sizeof(startAddress), false) ||
     !I2C_Read(i2c, BME280_address, &data[0], sizeof(data), true))
@@ -62,8 +60,7 @@ bool BME280_GetConfig(I2C_TypeDef *i2c, BME280_Config *config)
 
 bool BME280_GetStatus(I2C_TypeDef *i2c, BME280_Status *status)
 {
-  // "reset" register address and statusByte.
-  uint8_t statusAddress = 0xF3;
+  uint8_t statusAddress = 0xF3;   // status
   uint8_t statusByte;
 
   if (!I2C_Write(i2c, BME280_address, &statusAddress, sizeof(statusAddress), false) ||
@@ -78,10 +75,10 @@ bool BME280_GetStatus(I2C_TypeDef *i2c, BME280_Status *status)
 
 bool BME280_GetTrimmingParams(I2C_TypeDef *i2c, BME280_TrimmingParams *params)
 {
-  uint8_t trimmingAddress1 = 0x88;
-  uint8_t trimmingLength1 = 26;
-  uint8_t trimmingAddress2 = 0xE1;
-  uint8_t trimmingLength2 = 16;
+  uint8_t trimmingAddress1 = 0x88;  // calib00
+  uint8_t trimmingLength1 = 26;     // calib00 .. calib25
+  uint8_t trimmingAddress2 = 0xE1;  // calib26
+  uint8_t trimmingLength2 = 16;     // calib26 .. calib41
   uint8_t trimmingData[trimmingLength1 + trimmingLength1];
 
   if (!I2C_Write(i2c, BME280_address, &trimmingAddress1, sizeof(trimmingAddress1), false) ||
@@ -116,8 +113,8 @@ bool BME280_GetTrimmingParams(I2C_TypeDef *i2c, BME280_TrimmingParams *params)
 
 bool BME280_GetMeasurement(I2C_TypeDef *i2c, BME280_TrimmingParams *params, BME280_Measurement *measurement)
 {
-  uint8_t rawDataAddress = 0xF7;
-  uint8_t rawData[8];
+  uint8_t rawDataAddress = 0xF7;  // press_msb
+  uint8_t rawData[8];             // press_msb .. hum_lsb
   if (!I2C_Write(i2c, BME280_address, &rawDataAddress, sizeof(rawDataAddress), false) ||
     !I2C_Read(i2c, BME280_address, &rawData[0], sizeof(rawData), true))
     return false;
