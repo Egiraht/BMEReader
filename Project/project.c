@@ -24,6 +24,31 @@ void Project_ReEnumerateUsb()
 }
 
 /**
+ * @brief Recovers the I2C bus from possible stuck state by clocking the SCL until the SDA state is high.
+ */
+void Project_RecoverI2cState()
+{
+  uint16_t attempts = 100;
+
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
+  LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
+  LL_GPIO_SetOutputPin(SDA_GPIO_Port, SDA_Pin);
+  LL_GPIO_SetPinOutputType(SCL_GPIO_Port, SCL_Pin, LL_GPIO_OUTPUT_OPENDRAIN);
+  LL_GPIO_SetPinOutputType(SDA_GPIO_Port, SDA_Pin, LL_GPIO_OUTPUT_OPENDRAIN);
+  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_OUTPUT);
+  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_INPUT);
+  while (!LL_GPIO_IsInputPinSet(SDA_GPIO_Port, SDA_Pin) && --attempts)
+  {
+    LL_mDelay(0);
+    LL_GPIO_ResetOutputPin(SCL_GPIO_Port, SCL_Pin);
+    LL_mDelay(0);
+    LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
+  }
+  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_ALTERNATE);
+  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_ALTERNATE);
+}
+
+/**
  * @brief Called before peripherals are initialized but after RCC initialization.
  */
 void Project_PreInit()
@@ -43,7 +68,7 @@ bool Project_Bme280Init()
     .pressureOversampling = BME280_PRESSURE_OVERSAMPLING_16,
     .temperatureOversampling = BME280_TEMPERATURE_OVERSAMPLING_16,
     .humidityOversampling = BME280_HUMIDITY_OVERSAMPLING_16,
-    .standbyTime = BME280_STANDBY_TIME_62ms5,
+    .standbyTime = BME280_STANDBY_TIME_0ms5,
     .useSPI3WireMode = false
   };
 
@@ -64,6 +89,8 @@ bool Project_Bme280Init()
   if (!BME280_GetTrimmingParams(I2C1, &Project_TrimmingParams) || !BME280_SetConfig(I2C1, &config))
     return false;
 
+  LL_mDelay(100);
+
   return true;
 }
 
@@ -73,7 +100,7 @@ bool Project_Bme280Init()
 void Project_PostInit()
 {
   LL_I2C_Enable(I2C1);
-
+  Project_RecoverI2cState();
   Project_Bme280Init();
 }
 
