@@ -5,6 +5,11 @@
  */
 volatile uint8_t BME280_address = 0x76;
 
+/**
+ * @brief Gets the device identification code.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @return The identifier code of the device. Must be <i>0x60</i> for BME280.
+ */
 uint8_t BME280_GetID(I2C_TypeDef *i2c)
 {
   uint8_t address = 0xD0;   // id
@@ -18,12 +23,23 @@ uint8_t BME280_GetID(I2C_TypeDef *i2c)
   return 0x00;
 }
 
+/**
+ * @brief Resets the device.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @return <i>true</i> if operation succeeds, otherwise <i>false</i>.
+ */
 bool BME280_Reset(I2C_TypeDef *i2c)
 {
   uint8_t resetData[2] = {0xE0, 0xB6};  // reset = 0xB6
   return I2C_Write(i2c, BME280_address, &resetData[0], 2, true);
 }
 
+/**
+ * @brief Sets the device configuration.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @param config A pointer to the BME280 configuration structure to be set for the device.
+ * @return <i>true</i> if operation succeeds, otherwise <i>false</i>.
+ */
 bool BME280_SetConfig(I2C_TypeDef *i2c, BME280_Config *config)
 {
   uint8_t configData[6] = {
@@ -38,6 +54,12 @@ bool BME280_SetConfig(I2C_TypeDef *i2c, BME280_Config *config)
   return I2C_Write(i2c, BME280_address, &configData[0], sizeof(configData), true);
 }
 
+/**
+ * @brief Gets the current device configuration.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @param config A pointer to the BME280 configuration structure that will be filled with the data from the device.
+ * @return <i>true</i> if operation succeeds, otherwise <i>false</i>.
+ */
 bool BME280_GetConfig(I2C_TypeDef *i2c, BME280_Config *config)
 {
   uint8_t startAddress = 0xF2;  // ctrl_hum
@@ -58,6 +80,12 @@ bool BME280_GetConfig(I2C_TypeDef *i2c, BME280_Config *config)
   return true;
 }
 
+/**
+ * @brief Gets the current device status.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @param status A pointer to the BME280 status structure that will be filled with the data from the device.
+ * @return <i>true</i> if operation succeeds, otherwise <i>false</i>.
+ */
 bool BME280_GetStatus(I2C_TypeDef *i2c, BME280_Status *status)
 {
   uint8_t statusAddress = 0xF3;   // status
@@ -73,6 +101,12 @@ bool BME280_GetStatus(I2C_TypeDef *i2c, BME280_Status *status)
   return true;
 }
 
+/**
+ * @brief Gets the device trimming parameters used for device measurements calibration.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @param params A pointer to the BME280 trimming parameters structure that will be filled with the data from the device.
+ * @return <i>true</i> if operation succeeds, otherwise <i>false</i>.
+ */
 bool BME280_GetTrimmingParams(I2C_TypeDef *i2c, BME280_TrimmingParams *params)
 {
   uint8_t trimmingAddress1 = 0x88;  // calib00
@@ -111,6 +145,14 @@ bool BME280_GetTrimmingParams(I2C_TypeDef *i2c, BME280_TrimmingParams *params)
   return true;
 }
 
+/**
+ * @brief Gets the last measured climatic data from the device.
+ * @param i2c A pointer to structure of the I2C peripheral to use.
+ * @param params A pointer to the BME280 trimming parameters structure that will be used to calibrate the measured data.
+ * @param measurement A pointer to the BME280 measurement structure that will be filled with the calculated climatic
+ *   data measured by the device.
+ * @return <i>true</i> if operation succeeds, otherwise <i>false</i>.
+ */
 bool BME280_GetMeasurement(I2C_TypeDef *i2c, BME280_TrimmingParams *params, BME280_Measurement *measurement)
 {
   uint8_t rawDataAddress = 0xF7;  // press_msb
