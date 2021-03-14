@@ -6,9 +6,18 @@
 BME280_TrimmingParams Project_TrimmingParams;
 
 /**
- * @brief Forces the USB device re-enumeration at the host.
+ * @brief Sets the LED state.
+ * @param onState If <i>true</i> turns the LED on, otherwise turns the LED off.
  */
-void Project_ReEnumerateUsb()
+inline void Project_SetLedState(bool onState)
+{
+  return onState ? LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin) : LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
+}
+
+/**
+ * @brief Forces the USB device re-enumeration at the host. Must be called before USB peripheral initialization.
+ */
+static void Project_ReEnumerateUsb()
 {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
   LL_GPIO_ResetOutputPin(DM_GPIO_Port, DM_Pin);
@@ -53,13 +62,14 @@ void Project_RecoverI2cState()
  */
 void Project_PreInit()
 {
+  Project_SetLedState(true);
   Project_ReEnumerateUsb();
 }
-
 /**
  * @brief Initializes the BME280 sensor.
  * @return <i>true</i> on successful device initialization, otherwise <i>false</i>.
  */
+
 bool Project_Bme280Init()
 {
   BME280_Config config = {
@@ -102,6 +112,7 @@ void Project_PostInit()
   LL_I2C_Enable(I2C1);
   Project_RecoverI2cState();
   Project_Bme280Init();
+  Project_SetLedState(false);
 }
 
 /**
@@ -143,6 +154,8 @@ void Project_CdcMessageReceived(const char *string, uint16_t length)
   static char commandBuffer[CONFIG_MAX_COMMAND_MESSAGE_LENGTH + 1];
   static int16_t commandBufferIndex = 0;
 
+  Project_SetLedState(true);
+
   for (uint16_t index = 0; index < length; index++)
   {
     if (string[index] == 0x0A)
@@ -154,4 +167,6 @@ void Project_CdcMessageReceived(const char *string, uint16_t length)
     else if (commandBufferIndex <= CONFIG_MAX_COMMAND_MESSAGE_LENGTH)
       commandBuffer[commandBufferIndex++] = string[index];
   }
+
+  Project_SetLedState(false);
 }
