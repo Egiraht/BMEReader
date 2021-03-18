@@ -74,11 +74,11 @@ bool Project_Bme280Init()
 {
   BME280_Config config = {
     .mode = BME280_MODE_NORMAL,
-    .filter = BME280_FILTER_OFF,
-    .pressureOversampling = BME280_PRESSURE_OVERSAMPLING_16,
-    .temperatureOversampling = BME280_TEMPERATURE_OVERSAMPLING_16,
-    .humidityOversampling = BME280_HUMIDITY_OVERSAMPLING_16,
-    .standbyTime = BME280_STANDBY_TIME_0ms5,
+    .filter = CONFIG_FILTER_FACTOR,
+    .pressureOversampling = CONFIG_PRESSURE_OVERSAMPLING_FACTOR,
+    .temperatureOversampling = CONFIG_TEMPERATURE_OVERSAMPLING_FACTOR,
+    .humidityOversampling = CONFIG_HUMIDITY_OVERSAMPLING_FACTOR,
+    .standbyTime = CONFIG_STANDBY_TIME,
     .useSPI3WireMode = false
   };
 
