@@ -1,5 +1,5 @@
-#ifndef USB2BME280_COMMAND_H
-#define USB2BME280_COMMAND_H
+#ifndef BME_READER_COMMAND_H
+#define BME_READER_COMMAND_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -72,4 +72,4 @@ extern const uint32_t Command_BindingsCount;
 
 void Command_ProcessMessage(const char *commandMessage, char *responseMessage);
 
-#endif //USB2BME280_COMMAND_H
+#endif //BME_READER_COMMAND_H

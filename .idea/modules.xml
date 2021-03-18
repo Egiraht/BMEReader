@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/USB2BME280.iml" filepath="$PROJECT_DIR$/.idea/USB2BME280.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/BMEReader.iml" filepath="$PROJECT_DIR$/.idea/BMEReader.iml" />
     </modules>
   </component>
 </project>

@@ -1,5 +1,5 @@
-#ifndef USB2BME280_PROJECT_H
-#define USB2BME280_PROJECT_H
+#ifndef BME_READER_PROJECT_H
+#define BME_READER_PROJECT_H
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -13,7 +13,7 @@
 /**
  * @brief Defines the project name.
  */
-#define PROJECT_NAME "USB2BME280"
+#define PROJECT_NAME "BMEReader"
 
 /**
  * @brief Defines the project version.
@@ -31,4 +31,4 @@ void Project_Loop();
 bool Project_SendCdcMessage(const char *string, uint16_t length);
 void Project_CdcMessageReceived(const char *string, uint16_t length);
 
-#endif //USB2BME280_PROJECT_H
+#endif //BME_READER_PROJECT_H
