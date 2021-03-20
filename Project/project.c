@@ -1,3 +1,11 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright © 2020 Maxim Yudin <stibiu@yandex.ru>
+ */
+
 #include "project.h"
 
 /**
@@ -50,11 +58,11 @@ void Project_PreInit()
   Project_SetLedState(true);
   Project_ReEnumerateUsb();
 }
+
 /**
  * @brief Initializes the BME280 sensor.
  * @return <i>true</i> on successful device initialization, otherwise <i>false</i>.
  */
-
 bool Project_Bme280Init()
 {
   BME280_Config config = {

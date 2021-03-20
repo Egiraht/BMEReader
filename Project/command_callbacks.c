@@ -1,18 +1,79 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright © 2020 Maxim Yudin <stibiu@yandex.ru>
+ */
+
 #include "command.h"
 #include "project.h"
 
 #pragma ide diagnostic ignored "OCUnusedMacroInspection"
 
+/**
+ * @brief Returns <i>true</i> when the two strings match each other.
+ * @param str1 The first string to compare.
+ * @param str2 The second string to compare.
+ */
 #define STR_EQUAL(str1, str2) (strcasecmp(str1, str2) == 0)
+
+/**
+ * @brief Returns <i>true</i> when the string is empty.
+ * @param str The string to check.
+ */
 #define STR_EMPTY(str) (strlen(str) == 0)
 
+/**
+ * @brief Defines the OK response string.
+ */
 #define OK_RESPONSE "OK\n"
+
+/**
+ * @brief Defines the formatted OK response string.
+ * @param format The text string with optional value-formatting placeholders.
+ */
 #define OK_RESPONSE_FORMAT(format) "OK; " format "\n"
+
+/**
+ * @brief Defines the formatted ERROR response string.
+ * @param format The text string with optional value-formatting placeholders.
+ */
 #define ERROR_RESPONSE_FORMAT(format) "ERROR; " format "\n"
+
+/**
+ * @brief Defines the formatted ERROR response string with notification about the invalid command name.
+ * @param format The text string with optional value-formatting placeholders.
+ */
 #define INVALID_COMMAND_RESPONSE_FORMAT(format) ERROR_RESPONSE_FORMAT("Invalid command: " format)
+
+/**
+ * @brief Defines the formatted ERROR response string with notification about the invalid command parameter.
+ * @param format The text string with optional value-formatting placeholders.
+ */
 #define INVALID_PARAMETER_RESPONSE_FORMAT(format) ERROR_RESPONSE_FORMAT("Invalid parameter: " format)
+
+/**
+ * @brief Defines the formatted ERROR response string with notification about the invalid command parameter.
+ *   Also it contains the formatted list of acceptable values.
+ * @param param The text string with optional value-formatting placeholders containing the parameter name.
+ * @param list The text string with optional value-formatting placeholders containing the acceptable parameter values.
+ */
 #define INVALID_PARAMETER_LIST_RESPONSE_FORMAT(param, list) INVALID_PARAMETER_RESPONSE_FORMAT(param "; Supported: " list)
+
+/**
+ * @brief Defines the formatted ERROR response string with notification about the invalid command parameter value.
+ * @param format The text string with optional value-formatting placeholders.
+ */
 #define INVALID_VALUE_RESPONSE_FORMAT(format) ERROR_RESPONSE_FORMAT("Invalid value: " format)
+
+/**
+ * @brief Defines the formatted ERROR response string with notification about the invalid command parameter value.
+ *   Also it contains the formatted range of acceptable parameter values.
+ * @param param The text string with optional value-formatting placeholders containing the parameter name.
+ * @param min The text string with optional value-formatting placeholders containing the minimal parameter value.
+ * @param max The text string with optional value-formatting placeholders containing the maximal parameter value.
+ */
 #define INVALID_VALUE_RANGE_RESPONSE_FORMAT(param, min, max) INVALID_VALUE_RESPONSE_FORMAT(param "; Allowed range: " min "-" max)
 
 /**
