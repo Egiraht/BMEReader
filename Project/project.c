@@ -33,28 +33,13 @@ static void Project_ReEnumerateUsb()
 }
 
 /**
- * @brief Recovers the I2C bus from possible stuck state by clocking the SCL until the SDA state is high.
+ * @brief Recovers the I2C bus from possible stuck state.
  */
 void Project_RecoverI2cState()
 {
-  uint16_t attempts = 100;
-
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
-  LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
-  LL_GPIO_SetOutputPin(SDA_GPIO_Port, SDA_Pin);
-  LL_GPIO_SetPinOutputType(SCL_GPIO_Port, SCL_Pin, LL_GPIO_OUTPUT_OPENDRAIN);
-  LL_GPIO_SetPinOutputType(SDA_GPIO_Port, SDA_Pin, LL_GPIO_OUTPUT_OPENDRAIN);
-  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_OUTPUT);
-  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_INPUT);
-  while (!LL_GPIO_IsInputPinSet(SDA_GPIO_Port, SDA_Pin) && --attempts)
-  {
-    LL_mDelay(0);
-    LL_GPIO_ResetOutputPin(SCL_GPIO_Port, SCL_Pin);
-    LL_mDelay(0);
-    LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
-  }
-  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_ALTERNATE);
-  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_ALTERNATE);
+  LL_I2C_EnableReset(I2C1);
+  LL_I2C_DisableReset(I2C1);
+  MX_I2C1_Init();
 }
 
 /**

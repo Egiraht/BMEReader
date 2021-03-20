@@ -46,9 +46,11 @@ void MeasureCommand(const Command_Descriptor *descriptor, char *response)
   BME280_Config config;
   BME280_Measurement measurement;
 
-  Project_RecoverI2cState();
+  if (!LL_I2C_IsActiveFlag_BUSY(I2C1))
+    Project_RecoverI2cState();
+
   if (!BME280_GetConfig(I2C1, &config) ||
-    (config.mode != BME280_MODE_NORMAL && !Project_Bme280Init()) ||
+    (config.mode == BME280_MODE_SLEEP && !Project_Bme280Init()) ||
     !BME280_GetMeasurement(I2C1, &Project_TrimmingParams, &measurement))
   {
     sprintf(response, ERROR_RESPONSE_FORMAT("Failed to communicate with the sensor"));
