@@ -20,13 +20,15 @@
  */
 bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
 {
-  uint16_t attempts = I2C_MAX_ATTEMPTS;
+  I2C_CLEAR_ALL_FLAGS(i2c);
 
   // Sending the "(re)start" condition.
+  uint16_t attempts = I2C_MAX_ATTEMPTS;
   I2C_SEND_START(i2c);
   while (!I2C_IS_START_OK(i2c) && --attempts);
   if (!attempts)
   {
+    I2C_CLEAR_START(i2c);
     I2C_SEND_STOP(i2c);
     return false;
   }
@@ -77,13 +79,15 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
  */
 bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
 {
-  uint16_t attempts = I2C_MAX_ATTEMPTS;
+  I2C_CLEAR_ALL_FLAGS(i2c);
 
   // Sending the "(re)start" condition.
+  uint16_t attempts = I2C_MAX_ATTEMPTS;
   I2C_SEND_START(i2c);
   while (!I2C_IS_START_OK(i2c) && --attempts);
   if (!attempts)
   {
+    I2C_CLEAR_START(i2c);
     I2C_SEND_STOP(i2c);
     return false;
   }

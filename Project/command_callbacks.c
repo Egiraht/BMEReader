@@ -98,6 +98,16 @@ void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
 }
 
 /**
+ * @brief The command returning the device identifier string.
+ * @param descriptor The pointer to the input command descriptor structure.
+ * @param response The output response message buffer.
+ */
+void ResetCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
+{
+  NVIC_SystemReset();
+}
+
+/**
  * @brief The command returning the measured climatic data.
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
@@ -107,8 +117,7 @@ void MeasureCommand(const Command_Descriptor *descriptor, char *response)
   BME280_Config config;
   BME280_Measurement measurement;
 
-  if (!LL_I2C_IsActiveFlag_BUSY(I2C1))
-    Project_RecoverI2cState();
+  Project_RecoverI2cState();
 
   if (!BME280_GetConfig(I2C1, &config) ||
     (config.mode == BME280_MODE_SLEEP && !Project_Bme280Init()) ||
@@ -140,6 +149,10 @@ const Command_Binding Command_Bindings[] = {
   {
     .commandName = "Id",
     .commandCallback = IdCommand
+  },
+  {
+    .commandName = "Reset",
+    .commandCallback = ResetCommand
   },
   {
     .commandName = "Measure",

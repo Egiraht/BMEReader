@@ -48,6 +48,7 @@ void Project_RecoverI2cState()
   LL_I2C_EnableReset(I2C1);
   LL_I2C_DisableReset(I2C1);
   MX_I2C1_Init();
+  LL_I2C_Enable(I2C1);
 }
 
 /**
@@ -102,17 +103,15 @@ bool Project_Bme280Init()
  */
 void Project_PostInit()
 {
-  LL_I2C_Enable(I2C1);
   Project_RecoverI2cState();
   Project_Bme280Init();
   Project_SetLedState(false);
-}
 
-/**
- * @brief Called in the main background loop.
- */
-void Project_Loop()
-{
+  /*
+  // Send a response message after a successful software reset.
+  if (LL_RCC_IsActiveFlag_SFTRST())
+    Project_SendCdcMessage("OK\n", 3);
+  */
 }
 
 /**
@@ -162,4 +161,11 @@ void Project_CdcMessageReceived(const char *string, uint16_t length)
   }
 
   Project_SetLedState(false);
+}
+
+/**
+ * @brief Called in the main background loop.
+ */
+void Project_Loop()
+{
 }
