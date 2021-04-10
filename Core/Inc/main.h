@@ -28,18 +28,18 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx_hal.h"
+#include "stm32f4xx_hal.h"
 
-#include "stm32f1xx_ll_i2c.h"
-#include "stm32f1xx_ll_rcc.h"
-#include "stm32f1xx_ll_bus.h"
-#include "stm32f1xx_ll_system.h"
-#include "stm32f1xx_ll_exti.h"
-#include "stm32f1xx_ll_cortex.h"
-#include "stm32f1xx_ll_utils.h"
-#include "stm32f1xx_ll_pwr.h"
-#include "stm32f1xx_ll_dma.h"
-#include "stm32f1xx_ll_gpio.h"
+#include "stm32f4xx_ll_i2c.h"
+#include "stm32f4xx_ll_rcc.h"
+#include "stm32f4xx_ll_bus.h"
+#include "stm32f4xx_ll_system.h"
+#include "stm32f4xx_ll_exti.h"
+#include "stm32f4xx_ll_cortex.h"
+#include "stm32f4xx_ll_utils.h"
+#include "stm32f4xx_ll_pwr.h"
+#include "stm32f4xx_ll_dma.h"
+#include "stm32f4xx_ll_gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -72,9 +72,9 @@ void Error_Handler(void);
 #define LED_Pin LL_GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
 #define OSC_IN_Pin LL_GPIO_PIN_0
-#define OSC_IN_GPIO_Port GPIOD
+#define OSC_IN_GPIO_Port GPIOH
 #define OSC_OUT_Pin LL_GPIO_PIN_1
-#define OSC_OUT_GPIO_Port GPIOD
+#define OSC_OUT_GPIO_Port GPIOH
 #define DM_Pin LL_GPIO_PIN_11
 #define DM_GPIO_Port GPIOA
 #define DP_Pin LL_GPIO_PIN_12

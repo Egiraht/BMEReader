@@ -23,28 +23,13 @@ inline void Project_SetLedState(bool onState)
 }
 
 /**
- * @brief Forces the USB device re-enumeration at the host. Must be called before USB peripheral initialization.
- */
-static void Project_ReEnumerateUsb()
-{
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
-  LL_GPIO_ResetOutputPin(DM_GPIO_Port, DM_Pin);
-  LL_GPIO_ResetOutputPin(DP_GPIO_Port, DP_Pin);
-  LL_GPIO_SetPinOutputType(DM_GPIO_Port, DM_Pin, LL_GPIO_OUTPUT_PUSHPULL);
-  LL_GPIO_SetPinOutputType(DM_GPIO_Port, DP_Pin, LL_GPIO_OUTPUT_PUSHPULL);
-  LL_GPIO_SetPinMode(DM_GPIO_Port, DM_Pin, LL_GPIO_MODE_OUTPUT_50MHz);
-  LL_GPIO_SetPinMode(DP_GPIO_Port, DP_Pin, LL_GPIO_MODE_OUTPUT_50MHz);
-  LL_mDelay(10);
-  LL_GPIO_SetOutputPin(DP_GPIO_Port, DP_Pin);
-  LL_GPIO_SetPinMode(DM_GPIO_Port, DM_Pin, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinMode(DP_GPIO_Port, DP_Pin, LL_GPIO_MODE_INPUT);
-}
-
-/**
- * @brief Recovers the I2C bus from possible stuck state.
+ * @brief Recovers the I2C bus from possible stuck states.
  */
 void Project_RecoverI2cState()
 {
+  if (!LL_I2C_IsActiveFlag_BUSY(I2C1))
+    return;
+
   LL_I2C_EnableReset(I2C1);
   LL_I2C_DisableReset(I2C1);
   MX_I2C1_Init();
@@ -57,7 +42,6 @@ void Project_RecoverI2cState()
 void Project_PreInit()
 {
   Project_SetLedState(true);
-  Project_ReEnumerateUsb();
 }
 
 /**
@@ -103,7 +87,6 @@ bool Project_Bme280Init()
  */
 void Project_PostInit()
 {
-  Project_RecoverI2cState();
   Project_Bme280Init();
   Project_SetLedState(false);
 
