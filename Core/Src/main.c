@@ -184,6 +184,9 @@ void MX_I2C1_Init(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
 
   /* USER CODE BEGIN I2C1_Init 1 */
+  // Replacing the analog filter with a digital one. This should prevent possible hardware issues related with it.
+  I2C_InitStruct.AnalogFilter = LL_I2C_ANALOGFILTER_DISABLE;
+  I2C_InitStruct.DigitalFilter = 2;
 
   /* USER CODE END I2C1_Init 1 */
   /** I2C Initialization
@@ -193,7 +196,7 @@ void MX_I2C1_Init(void)
   LL_I2C_EnableClockStretching(I2C1);
   I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
   I2C_InitStruct.ClockSpeed = 400000;
-  I2C_InitStruct.DutyCycle = LL_I2C_DUTYCYCLE_16_9;
+  I2C_InitStruct.DutyCycle = LL_I2C_DUTYCYCLE_2;
   I2C_InitStruct.OwnAddress1 = 0;
   I2C_InitStruct.TypeAcknowledge = LL_I2C_ACK;
   I2C_InitStruct.OwnAddrSize = LL_I2C_OWNADDRESS1_7BIT;

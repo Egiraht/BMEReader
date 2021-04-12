@@ -23,20 +23,6 @@ inline void Project_SetLedState(bool onState)
 }
 
 /**
- * @brief Recovers the I2C bus from possible stuck states.
- */
-void Project_RecoverI2cState()
-{
-  if (!LL_I2C_IsActiveFlag_BUSY(I2C1))
-    return;
-
-  LL_I2C_EnableReset(I2C1);
-  LL_I2C_DisableReset(I2C1);
-  MX_I2C1_Init();
-  LL_I2C_Enable(I2C1);
-}
-
-/**
  * @brief Called before peripherals are initialized but after RCC initialization.
  */
 void Project_PreInit()
@@ -83,18 +69,24 @@ bool Project_Bme280Init()
 }
 
 /**
+ * @brief The callback function that initializes the I2C peripheral.
+ */
+static void Project_InitializeI2cCallback(I2C_TypeDef *i2c)
+{
+  if (i2c == I2C1)
+    MX_I2C1_Init();
+
+  LL_I2C_Enable(i2c);
+}
+
+/**
  * @brief Called after peripherals are initialized.
  */
 void Project_PostInit()
 {
+  I2C_InitializePeripheralCallback = Project_InitializeI2cCallback;
   Project_Bme280Init();
   Project_SetLedState(false);
-
-  /*
-  // Send a response message after a successful software reset.
-  if (LL_RCC_IsActiveFlag_SFTRST())
-    Project_SendCdcMessage("OK\n", 3);
-  */
 }
 
 /**

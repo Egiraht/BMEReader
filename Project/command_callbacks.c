@@ -117,8 +117,6 @@ void MeasureCommand(const Command_Descriptor *descriptor, char *response)
   BME280_Config config;
   BME280_Measurement measurement;
 
-  Project_RecoverI2cState();
-
   if (!BME280_GetConfig(I2C1, &config) ||
     (config.mode == BME280_MODE_SLEEP && !Project_Bme280Init()) ||
     !BME280_GetMeasurement(I2C1, &Project_TrimmingParams, &measurement))
@@ -143,9 +141,9 @@ void MeasureCommand(const Command_Descriptor *descriptor, char *response)
     sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param, "P, T, H, All");
 }
 
-const Command_Callback Command_DefaultCallback = UnknownCommand;
+Command_Callback Command_DefaultCallback = UnknownCommand;
 
-const Command_Binding Command_Bindings[] = {
+Command_Binding Command_Bindings[] = {
   {
     .commandName = "Id",
     .commandCallback = IdCommand
@@ -160,4 +158,4 @@ const Command_Binding Command_Bindings[] = {
   }
 };
 
-const uint32_t Command_BindingsCount = sizeof(Command_Bindings) / sizeof(Command_Binding);
+uint32_t Command_BindingsCount = sizeof(Command_Bindings) / sizeof(Command_Binding);

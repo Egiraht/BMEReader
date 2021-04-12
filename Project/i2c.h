@@ -9,6 +9,7 @@
 #ifndef I2C_H
 #define I2C_H
 
+#include <sys/cdefs.h>
 #include <stdbool.h>
 
 #include "main.h"
@@ -19,6 +20,9 @@
 #define I2C_MAX_ATTEMPTS 1000
 
 /* Hardware control macros. */
+#define I2C_IS_BUSY_FLAG_SET(i2c)           (LL_I2C_IsActiveFlag_BUSY(i2c))
+#define I2C_IS_BERR_FLAG_SET(i2c)           (LL_I2C_IsActiveFlag_BERR(i2c))
+#define I2C_RESET_PERIPHERAL(i2c)           ({ LL_I2C_EnableReset(i2c); LL_I2C_DisableReset(i2c); })
 #define I2C_CLEAR_ALL_FLAGS(i2c)            ((void) (i2c->SR1 = 0x00))
 #define I2C_SEND_START(i2c)                 (LL_I2C_GenerateStartCondition(i2c))
 #define I2C_CLEAR_START(i2c)                (CLEAR_BIT(i2c->CR1, I2C_CR1_START))
@@ -36,6 +40,10 @@
 #define I2C_NACK_NEXT_READ(i2c)             (LL_I2C_AcknowledgeNextData(i2c, LL_I2C_NACK))
 #define I2C_IS_BYTE_RECEIVED(i2c)           (LL_I2C_IsActiveFlag_RXNE(i2c))
 #define I2C_READ_BYTE(i2c)                  (LL_I2C_ReceiveData8(i2c))
+
+typedef void (*I2C_PeripheralCallback)(I2C_TypeDef *i2c);
+
+extern I2C_PeripheralCallback I2C_InitializePeripheralCallback;
 
 bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop);
 

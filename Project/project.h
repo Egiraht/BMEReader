@@ -31,7 +31,6 @@
 extern BME280_TrimmingParams Project_TrimmingParams;
 
 void Project_SetLedState(bool onState);
-void Project_RecoverI2cState();
 void Project_PreInit();
 bool Project_Bme280Init();
 void Project_PostInit();

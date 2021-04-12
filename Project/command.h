@@ -50,7 +50,7 @@ typedef struct Command_Binding
   /**
    * @brief The command name used for invoking the bound <i>callback</i> function.
    */
-  char* commandName;
+  char *commandName;
 
   /**
    * @brief The callback function that will be invoked when the command name matches the bound <i>commandName</i>
@@ -59,24 +59,9 @@ typedef struct Command_Binding
   Command_Callback commandCallback;
 } Command_Binding;
 
-/**
- * @brief A pointer to the default callback function that will handle commands that do not match any bindings in
- *   the <i>Command_Bindings</i> array.
- * @note This variable is a placeholder, and it must be implemented in external code.
- */
-extern const Command_Callback Command_DefaultCallback;
-
-/**
- * @brief An array that defines bindings between command names and corresponding command callback functions.
- * @note This variable is a placeholder, and it must be implemented in external code.
- */
-extern const Command_Binding Command_Bindings[];
-
-/**
- * @brief A constant that must provide the size of the <i>Command_Bindings</i> array.
- * @note This variable is a placeholder, and it must be implemented in external code.
- */
-extern const uint32_t Command_BindingsCount;
+extern Command_Callback Command_DefaultCallback;
+extern Command_Binding Command_Bindings[];
+extern uint32_t Command_BindingsCount;
 
 void Command_ProcessMessage(const char *commandMessage, char *responseMessage);
 
