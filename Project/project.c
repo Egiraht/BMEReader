@@ -23,13 +23,31 @@ inline void Project_SetLedState(bool onState)
 }
 
 /**
- * @brief Recovers the I2C bus from possible stuck states.
+ * @brief Recovers the I2C bus from possible stuck states. This function must be called before any I2C communication is
+ *   performed.
  */
 void Project_RecoverI2cState()
 {
+  // Recover only if the I2C bus BUSY flag is set.
   if (!LL_I2C_IsActiveFlag_BUSY(I2C1))
     return;
 
+  // Forcing release of the SDA line if a slave is holding it low.
+  uint16_t attempts = 20;
+  LL_I2C_Disable(I2C1);
+  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_OUTPUT);
+  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_INPUT);
+  while (!LL_GPIO_IsInputPinSet(SDA_GPIO_Port, SDA_Pin) && --attempts)
+  {
+    LL_GPIO_ResetOutputPin(SCL_GPIO_Port, SCL_Pin);
+    LL_mDelay(0);
+    LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
+    LL_mDelay(0);
+  }
+  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_ALTERNATE);
+  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_ALTERNATE);
+
+  // Reinitializing the I2C peripheral.
   LL_I2C_EnableReset(I2C1);
   LL_I2C_DisableReset(I2C1);
   MX_I2C1_Init();
@@ -59,6 +77,8 @@ bool Project_Bme280Init()
     .standbyTime = CONFIG_STANDBY_TIME,
     .useSPI3WireMode = false
   };
+
+  Project_RecoverI2cState();
 
   if (BME280_GetID(I2C1) != 0x60 || !BME280_Reset(I2C1))
     return false;
