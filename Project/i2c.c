@@ -9,21 +9,6 @@
 #include "i2c.h"
 
 /**
- * @brief The default empty I2C initialization callback.
- */
-static inline void I2C_EmptyInitializePeripheralCallback(__unused I2C_TypeDef *i2c)
-{
-}
-
-/**
- * @brief The callback function pointer that is called when the I2C peripheral re-initialization is required to recover
- *   the bus from the hardware failure state.
- * @note This callback must be set or overridden in external code before any I2C communication is performed.
- *   By default it does nothing.
- */
-__weak_symbol I2C_PeripheralCallback I2C_InitializePeripheralCallback = I2C_EmptyInitializePeripheralCallback;
-
-/**
  * @brief Writes the buffer bytes to the I2C bus.
  * @param i2c The I2C peripheral structure to be used for communication.
  * @param address The 7-bit I2C address with the "read/write" flag bit shifted out.
@@ -35,14 +20,6 @@ __weak_symbol I2C_PeripheralCallback I2C_InitializePeripheralCallback = I2C_Empt
  */
 bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
 {
-  // Resetting the bus if BUSY or BERR flag is set (recovering from a bus failure state).
-  if (I2C_IS_BUSY_FLAG_SET(i2c) || I2C_IS_BERR_FLAG_SET(i2c))
-  {
-    I2C_RESET_PERIPHERAL(i2c);
-    I2C_InitializePeripheralCallback(i2c);
-  }
-  I2C_CLEAR_ALL_FLAGS(i2c);
-
   // Sending the "(re)start" condition.
   uint16_t attempts = I2C_MAX_ATTEMPTS;
   I2C_SEND_START(i2c);
@@ -100,14 +77,6 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
  */
 bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
 {
-  // Resetting the bus if BUSY or BERR flag is set (recovering from a bus failure state).
-  if (I2C_IS_BUSY_FLAG_SET(i2c) || I2C_IS_BERR_FLAG_SET(i2c))
-  {
-    I2C_RESET_PERIPHERAL(i2c);
-    I2C_InitializePeripheralCallback(i2c);
-  }
-  I2C_CLEAR_ALL_FLAGS(i2c);
-
   // Sending the "(re)start" condition.
   uint16_t attempts = I2C_MAX_ATTEMPTS;
   I2C_SEND_START(i2c);
