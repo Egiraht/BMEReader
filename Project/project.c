@@ -9,9 +9,58 @@
 #include "project.h"
 
 /**
+ * @brief Defines the MCU bootloader start address.
+ */
+#define PROJECT_BOOTLOADER_START_ADDRESS 0x1FFF0000
+
+/**
+ * @brief Defines the key value that indicates that a jump to the bootloader has been requested.
+ */
+#define PROJECT_BOOTLOADER_KEY 0x12345678
+
+/**
+ * @brief The simple action callback definition.
+ */
+typedef void (*Project_Action)();
+
+/**
  * @brief Stores the BME280 trimming parameters.
  */
 BME280_TrimmingParams Project_TrimmingParams;
+
+/**
+ * @brief Requests a jump to the bootloader after performing a software reset. This functions does not return.
+ */
+__NO_RETURN void Project_RequestJumpToBootloader()
+{
+  // Setting the bootloader key value to the backup register.
+  LL_RTC_BAK_SetRegister(RTC, LL_RTC_BKP_DR0, PROJECT_BOOTLOADER_KEY);
+
+  // Requesting a software reset for the MCU.
+  NVIC_SystemReset();
+}
+
+/**
+ * @brief Checks if the bootloader jump has been requested, and jumps to it if true.
+ */
+void Project_JumpToBootloaderIfRequested()
+{
+  // Checking if the bootloader key value has been set in the backup register.
+  if (LL_RTC_BAK_GetRegister(RTC, LL_RTC_BKP_DR0) != PROJECT_BOOTLOADER_KEY)
+    return;
+
+  // Clearing the key value from the backup register.
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+  LL_PWR_EnableBkUpAccess();
+  LL_RCC_EnableRTC();
+  LL_RTC_BAK_SetRegister(RTC, LL_RTC_BKP_DR0, 0);
+
+  // Setting the bootloader stack pointer and jumping to the bootloader entry point.
+  uint32_t bootloaderStackPointer = *((uint32_t *) PROJECT_BOOTLOADER_START_ADDRESS);
+  Project_Action bootloaderEntryPoint = (Project_Action) *((uint32_t *) (PROJECT_BOOTLOADER_START_ADDRESS + 4));
+  __set_MSP(bootloaderStackPointer);
+  bootloaderEntryPoint();
+}
 
 /**
  * @brief Sets the LED state.

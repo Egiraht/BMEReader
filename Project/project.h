@@ -30,6 +30,8 @@
 
 extern BME280_TrimmingParams Project_TrimmingParams;
 
+void Project_RequestJumpToBootloader();
+void Project_JumpToBootloaderIfRequested();
 void Project_SetLedState(bool onState);
 void Project_RecoverI2cState();
 void Project_PreInit();

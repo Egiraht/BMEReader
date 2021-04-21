@@ -133,8 +133,24 @@ void MeasureCommand(const Command_Descriptor *descriptor, char *response)
     sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param, "P, T, H, All");
 }
 
+/**
+ * @brief The command that reboots the MCU and jumps it to the bootloader. No command response is returned.
+ * @param descriptor The pointer to the input command descriptor structure.
+ * @param response The output response message buffer.
+ */
+void BootloaderCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
+{
+  Project_RequestJumpToBootloader();
+}
+
+/**
+ * @brief The default command callback.
+ */
 Command_Callback Command_DefaultCallback = UnknownCommand;
 
+/**
+ * @brief The command bindings array.
+ */
 Command_Binding Command_Bindings[] = {
   {
     .commandName = "Id",
@@ -143,7 +159,14 @@ Command_Binding Command_Bindings[] = {
   {
     .commandName = "Measure",
     .commandCallback = MeasureCommand
+  },
+  {
+    .commandName = "Bootloader",
+    .commandCallback = BootloaderCommand
   }
 };
 
+/**
+ * @brief The command bindings count value.
+ */
 uint32_t Command_BindingsCount = sizeof(Command_Bindings) / sizeof(Command_Binding);
