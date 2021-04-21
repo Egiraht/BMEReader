@@ -98,16 +98,6 @@ void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
 }
 
 /**
- * @brief The command returning the device identifier string.
- * @param descriptor The pointer to the input command descriptor structure.
- * @param response The output response message buffer.
- */
-void ResetCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
-{
-  NVIC_SystemReset();
-}
-
-/**
  * @brief The command returning the measured climatic data.
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
@@ -130,14 +120,14 @@ void MeasureCommand(const Command_Descriptor *descriptor, char *response)
   // Converting Pa to mmHg.
   measurement.pressure *= 0.007500617F;
 
-  if (STR_EQUAL(descriptor->param, "all"))
+  if (STR_EQUAL(descriptor->param, "All"))
     sprintf(response, OK_RESPONSE_FORMAT("P = %f mmHg; T = %f degC; H = %f %%"),
       measurement.pressure, measurement.temperature, measurement.humidity);
-  else if (STR_EQUAL(descriptor->param, "p"))
+  else if (STR_EQUAL(descriptor->param, "P"))
     sprintf(response, OK_RESPONSE_FORMAT("%f mmHg"), measurement.pressure);
-  else if (STR_EQUAL(descriptor->param, "t"))
+  else if (STR_EQUAL(descriptor->param, "T"))
     sprintf(response, OK_RESPONSE_FORMAT("%f degC"), measurement.temperature);
-  else if (STR_EQUAL(descriptor->param, "h"))
+  else if (STR_EQUAL(descriptor->param, "H"))
     sprintf(response, OK_RESPONSE_FORMAT("%f %%"), measurement.humidity);
   else
     sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param, "P, T, H, All");
@@ -149,10 +139,6 @@ Command_Binding Command_Bindings[] = {
   {
     .commandName = "Id",
     .commandCallback = IdCommand
-  },
-  {
-    .commandName = "Reset",
-    .commandCallback = ResetCommand
   },
   {
     .commandName = "Measure",
