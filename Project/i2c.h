@@ -19,7 +19,7 @@
 #define I2C_MAX_ATTEMPTS 1000
 
 /* Hardware control macros. */
-#define I2C_CLEAR_ALL_FLAGS(i2c)            ((void) (i2c->SR1 = 0x00))
+#define I2C_CLEAR_ALL_FLAGS(i2c)            (WRITE_REG(i2c->SR1, 0x0000))
 #define I2C_SEND_START(i2c)                 (LL_I2C_GenerateStartCondition(i2c))
 #define I2C_CLEAR_START(i2c)                (CLEAR_BIT(i2c->CR1, I2C_CR1_START))
 #define I2C_IS_START_OK(i2c)                (LL_I2C_IsActiveFlag_SB(i2c))
@@ -37,8 +37,39 @@
 #define I2C_IS_BYTE_RECEIVED(i2c)           (LL_I2C_IsActiveFlag_RXNE(i2c))
 #define I2C_READ_BYTE(i2c)                  (LL_I2C_ReceiveData8(i2c))
 
-bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop);
+/**
+ * @brief The enumeration of I2C operation results.
+ */
+typedef enum I2C_Result
+{
+  /**
+   * @brief The operation has been completed successfully.
+   */
+  I2C_RESULT_OK,
 
-bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop);
+  /**
+   * @brief Failed to issue a START condition on the bus.
+   */
+  I2C_RESULT_START_FAILED,
+
+  /**
+   * @brief The specified I2C address has not been acknowledged.
+   */
+  I2C_RESULT_ADDRESS_FAILED,
+
+  /**
+   * @brief The written data byte has not been acknowledged.
+   */
+  I2C_RESULT_ACK_FAILED,
+
+  /**
+   * @brief Failed to read a data byte from the bus.
+   */
+  I2C_RESULT_READ_FAILED
+} I2C_Result;
+
+I2C_Result I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop);
+
+I2C_Result I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop);
 
 #endif

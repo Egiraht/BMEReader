@@ -77,11 +77,53 @@
 #define INVALID_VALUE_RANGE_RESPONSE_FORMAT(param, min, max) INVALID_VALUE_RESPONSE_FORMAT(param "; Allowed range: " min "-" max)
 
 /**
+ * @brief Gets the message string describing the I2C result.
+ * @param result The I2C result value to get the message for.
+ * @param resultMessage A string buffer where the message will be put.
+ */
+static void GetI2cResultMessage(I2C_Result result, char *resultMessage)
+{
+  switch (result)
+  {
+    case I2C_RESULT_OK:
+    {
+      sprintf(resultMessage, OK_RESPONSE);
+      return;
+    }
+    case I2C_RESULT_START_FAILED:
+    {
+      sprintf(resultMessage, ERROR_RESPONSE_FORMAT("Failed to start an I2C transmission."));
+      return;
+    }
+    case I2C_RESULT_ADDRESS_FAILED:
+    {
+      sprintf(resultMessage, ERROR_RESPONSE_FORMAT("The BME280 sensor was not detected on the I2C bus."));
+      return;
+    }
+    case I2C_RESULT_ACK_FAILED:
+    {
+      sprintf(resultMessage, ERROR_RESPONSE_FORMAT("The BME280 sensor failed to acknowledge the data."));
+      return;
+    }
+    case I2C_RESULT_READ_FAILED:
+    {
+      sprintf(resultMessage, ERROR_RESPONSE_FORMAT("Failed to read data from the BME280 sensor."));
+      return;
+    }
+    default:
+    {
+      sprintf(resultMessage, ERROR_RESPONSE_FORMAT("An unknown error has occurred."));
+      return;
+    }
+  }
+}
+
+/**
  * @brief The default callback for unknown commands.
  * @param commandDescriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void UnknownCommand(const Command_Descriptor *commandDescriptor, char *response)
+static void UnknownCommand(const Command_Descriptor *commandDescriptor, char *response)
 {
   sprintf(response, INVALID_COMMAND_RESPONSE_FORMAT("%s"), commandDescriptor->name);
 }
@@ -91,7 +133,7 @@ void UnknownCommand(const Command_Descriptor *commandDescriptor, char *response)
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
+static void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
 {
   sprintf(response, OK_RESPONSE_FORMAT("%s; Version: %s; SN: %08lX%08lX%08lX"), PROJECT_NAME, PROJECT_VERSION,
     LL_GetUID_Word2(), LL_GetUID_Word1(), LL_GetUID_Word0());
@@ -102,7 +144,7 @@ void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void ResetCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
+static void ResetCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
 {
   NVIC_SystemReset();
 }
@@ -112,40 +154,47 @@ void ResetCommand(__unused const Command_Descriptor *descriptor, __unused char *
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
  */
-void MeasureCommand(const Command_Descriptor *descriptor, char *response)
+static void MeasureCommand(const Command_Descriptor *descriptor, char *response)
 {
   BME280_Config config;
   BME280_Measurement measurement;
+  I2C_Result result;
 
   Project_RecoverI2cState();
 
-  if (!BME280_GetConfig(I2C1, &config) ||
-    (config.mode == BME280_MODE_SLEEP && !Project_Bme280Init()) ||
-    !BME280_GetMeasurement(I2C1, &Project_TrimmingParams, &measurement))
-  {
-    sprintf(response, ERROR_RESPONSE_FORMAT("Failed to communicate with the sensor"));
-    return;
-  }
+  result = BME280_GetConfig(I2C1, &config);
+  if (result != I2C_RESULT_OK)
+    return GetI2cResultMessage(result, response);
+
+  if (config.mode == BME280_MODE_SLEEP && !Project_Bme280Init())
+    return (void) sprintf(response, ERROR_RESPONSE_FORMAT("Failed to initialize the BME280 sensor."));
+
+  result = BME280_GetMeasurement(I2C1, &Project_TrimmingParams, &measurement);
+  if (result != I2C_RESULT_OK)
+    return GetI2cResultMessage(result, response);
 
   // Converting Pa to mmHg.
   measurement.pressure *= 0.007500617F;
 
-  if (STR_EQUAL(descriptor->param, "all"))
+  if (STR_EQUAL(descriptor->param, "All"))
     sprintf(response, OK_RESPONSE_FORMAT("P = %f mmHg; T = %f degC; H = %f %%"),
       measurement.pressure, measurement.temperature, measurement.humidity);
-  else if (STR_EQUAL(descriptor->param, "p"))
+  else if (STR_EQUAL(descriptor->param, "P"))
     sprintf(response, OK_RESPONSE_FORMAT("%f mmHg"), measurement.pressure);
-  else if (STR_EQUAL(descriptor->param, "t"))
+  else if (STR_EQUAL(descriptor->param, "T"))
     sprintf(response, OK_RESPONSE_FORMAT("%f degC"), measurement.temperature);
-  else if (STR_EQUAL(descriptor->param, "h"))
+  else if (STR_EQUAL(descriptor->param, "H"))
     sprintf(response, OK_RESPONSE_FORMAT("%f %%"), measurement.humidity);
   else
     sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param, "P, T, H, All");
 }
 
-const Command_Callback Command_DefaultCallback = UnknownCommand;
+Command_Callback Command_DefaultCallback = UnknownCommand;
 
-const Command_Binding Command_Bindings[] = {
+/**
+ * @brief The command bindings array.
+ */
+Command_Binding Command_Bindings[] = {
   {
     .commandName = "Id",
     .commandCallback = IdCommand
@@ -160,4 +209,7 @@ const Command_Binding Command_Bindings[] = {
   }
 };
 
-const uint32_t Command_BindingsCount = sizeof(Command_Bindings) / sizeof(Command_Binding);
+/**
+ * @brief The command bindings count value.
+ */
+uint32_t Command_BindingsCount = sizeof(Command_Bindings) / sizeof(Command_Binding);

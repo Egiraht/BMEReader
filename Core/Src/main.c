@@ -172,7 +172,7 @@ void MX_I2C1_Init(void)
   */
   GPIO_InitStruct.Pin = SCL_Pin|SDA_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -191,7 +191,7 @@ void MX_I2C1_Init(void)
   LL_I2C_EnableClockStretching(I2C1);
   I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
   I2C_InitStruct.ClockSpeed = 400000;
-  I2C_InitStruct.DutyCycle = LL_I2C_DUTYCYCLE_16_9;
+  I2C_InitStruct.DutyCycle = LL_I2C_DUTYCYCLE_2;
   I2C_InitStruct.OwnAddress1 = 0;
   I2C_InitStruct.TypeAcknowledge = LL_I2C_ACK;
   I2C_InitStruct.OwnAddrSize = LL_I2C_OWNADDRESS1_7BIT;

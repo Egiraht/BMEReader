@@ -133,12 +133,12 @@ typedef struct BME280_TrimmingParams
   float h[6];
 } BME280_TrimmingParams;
 
-uint8_t BME280_GetID(I2C_TypeDef *i2c);
-bool BME280_Reset(I2C_TypeDef *i2c);
-bool BME280_SetConfig(I2C_TypeDef *i2c, BME280_Config *config);
-bool BME280_GetConfig(I2C_TypeDef *i2c, BME280_Config *config);
-bool BME280_GetStatus(I2C_TypeDef *i2c, BME280_Status *status);
-bool BME280_GetTrimmingParams(I2C_TypeDef *i2c, BME280_TrimmingParams *params);
-bool BME280_GetMeasurement(I2C_TypeDef *i2c, BME280_TrimmingParams *params, BME280_Measurement *measurement);
+I2C_Result BME280_GetID(I2C_TypeDef *i2c, uint8_t *id);
+I2C_Result BME280_Reset(I2C_TypeDef *i2c);
+I2C_Result BME280_SetConfig(I2C_TypeDef *i2c, BME280_Config *config);
+I2C_Result BME280_GetConfig(I2C_TypeDef *i2c, BME280_Config *config);
+I2C_Result BME280_GetStatus(I2C_TypeDef *i2c, BME280_Status *status);
+I2C_Result BME280_GetTrimmingParams(I2C_TypeDef *i2c, BME280_TrimmingParams *params);
+I2C_Result BME280_GetMeasurement(I2C_TypeDef *i2c, BME280_TrimmingParams *params, BME280_Measurement *measurement);
 
 #endif

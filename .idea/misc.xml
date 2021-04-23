@@ -2,11 +2,21 @@
 <project version="4">
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/Core" />
+      <file path="$PROJECT_DIR$/Project" />
+      <file path="$PROJECT_DIR$/USB_DEVICE" />
+    </sourceRoots>
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/Drivers" />
+      <file path="$PROJECT_DIR$/Middlewares" />
+    </libraryRoots>
     <excludeRoots>
-      <file path="$PROJECT_DIR$/.mxproject" />
+      <file path="$PROJECT_DIR$/Schematics" />
       <file path="$PROJECT_DIR$/.cproject" />
-      <file path="$PROJECT_DIR$/.project" />
       <file path="$PROJECT_DIR$/.idea" />
+      <file path="$PROJECT_DIR$/.mxproject" />
+      <file path="$PROJECT_DIR$/.project" />
     </excludeRoots>
   </component>
 </project>
