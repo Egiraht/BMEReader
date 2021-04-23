@@ -77,24 +77,45 @@ inline void Project_SetLedState(bool onState)
  */
 void Project_RecoverI2cState()
 {
-  // Recover only if the I2C bus BUSY flag is set.
+  // Recover only if the I2C peripheral BUSY flag is set.
   if (!LL_I2C_IsActiveFlag_BUSY(I2C1))
     return;
 
-  // Forcing release of the SDA line if a slave is holding it low.
-  uint16_t attempts = 20;
   LL_I2C_Disable(I2C1);
-  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_OUTPUT);
-  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_INPUT);
-  while (!LL_GPIO_IsInputPinSet(SDA_GPIO_Port, SDA_Pin) && --attempts)
+
+  // Forcing release of the SDA line if a slave is holding it low.
+  if (!LL_GPIO_IsInputPinSet(SDA_GPIO_Port, SDA_Pin))
   {
+    // Disconnecting the SCL and SDA lines from the I2C peripheral and setting them as open-drain outputs.
+    LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
+    LL_GPIO_SetOutputPin(SDA_GPIO_Port, SDA_Pin);
+    LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_OUTPUT);
+    LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_OUTPUT);
+
+    // Cycling the SCL line until the SDA line is released.
+    uint16_t attempts = 20;
+    while (!LL_GPIO_IsInputPinSet(SDA_GPIO_Port, SDA_Pin) && --attempts)
+    {
+      LL_GPIO_ResetOutputPin(SCL_GPIO_Port, SCL_Pin);
+      LL_mDelay(0);
+      LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
+      LL_mDelay(0);
+    }
+
+    // Generating sequential START and STOP conditions.
+    LL_GPIO_ResetOutputPin(SDA_GPIO_Port, SDA_Pin);
+    LL_mDelay(0);
     LL_GPIO_ResetOutputPin(SCL_GPIO_Port, SCL_Pin);
     LL_mDelay(0);
     LL_GPIO_SetOutputPin(SCL_GPIO_Port, SCL_Pin);
     LL_mDelay(0);
+    LL_GPIO_SetOutputPin(SDA_GPIO_Port, SDA_Pin);
+    LL_mDelay(0);
+
+    // Connecting the SCL and SDA lines back to the I2C peripheral.
+    LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_ALTERNATE);
   }
-  LL_GPIO_SetPinMode(SCL_GPIO_Port, SCL_Pin, LL_GPIO_MODE_ALTERNATE);
-  LL_GPIO_SetPinMode(SDA_GPIO_Port, SDA_Pin, LL_GPIO_MODE_ALTERNATE);
 
   // Reinitializing the I2C peripheral.
   LL_I2C_EnableReset(I2C1);
@@ -129,21 +150,23 @@ bool Project_Bme280Init()
 
   Project_RecoverI2cState();
 
-  if (BME280_GetID(I2C1) != 0x60 || !BME280_Reset(I2C1))
+  uint8_t id;
+  if (BME280_GetID(I2C1, &id) != I2C_RESULT_OK || id != 0x60 || BME280_Reset(I2C1) != I2C_RESULT_OK)
     return false;
 
   uint16_t attempts = 100;
   BME280_Status status;
   do
   {
-    if (!BME280_GetStatus(I2C1, &status))
+    if (BME280_GetStatus(I2C1, &status) != I2C_RESULT_OK)
       return false;
   }
   while (status.isMemoryUpdating && --attempts);
   if (!attempts)
     return false;
 
-  if (!BME280_GetTrimmingParams(I2C1, &Project_TrimmingParams) || !BME280_SetConfig(I2C1, &config))
+  if (BME280_GetTrimmingParams(I2C1, &Project_TrimmingParams) != I2C_RESULT_OK ||
+    BME280_SetConfig(I2C1, &config) != I2C_RESULT_OK)
     return false;
 
   LL_mDelay(100);

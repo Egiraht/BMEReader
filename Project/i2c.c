@@ -16,10 +16,12 @@
  * @param length The number of buffer bytes to be written from the buffer.
  * @param sendStop Defines if the "stop" condition should be issued after the buffer have been written.
  *   Set to <i>true</i> if further sequential read/write operations will take place after completing the function.
- * @return <i>true</i> if buffer writing has completed successfully, otherwise <i>false</i>.
+ * @return A value indicating the I2C operation result. See the <i>I2C_Result</i> enumeration.
  */
-bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
+I2C_Result I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
 {
+  I2C_CLEAR_ALL_FLAGS(i2c);
+
   // Sending the "(re)start" condition.
   uint16_t attempts = I2C_MAX_ATTEMPTS;
   I2C_SEND_START(i2c);
@@ -28,7 +30,7 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
   {
     I2C_CLEAR_START(i2c);
     I2C_SEND_STOP(i2c);
-    return false;
+    return I2C_RESULT_START_FAILED;
   }
 
   // Sending the address with the "write" flag.
@@ -39,7 +41,7 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
   {
     I2C_CLEAR_ACK_FAILED_FLAG(i2c);
     I2C_SEND_STOP(i2c);
-    return false;
+    return I2C_RESULT_ADDRESS_FAILED;
   }
 
   // Writing the buffer bytes.
@@ -54,7 +56,7 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
     {
       I2C_CLEAR_ACK_FAILED_FLAG(i2c);
       I2C_SEND_STOP(i2c);
-      return false;
+      return I2C_RESULT_ACK_FAILED;
     }
   }
 
@@ -62,7 +64,7 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
   if (sendStop)
     I2C_SEND_STOP(i2c);
 
-  return true;
+  return I2C_RESULT_OK;
 }
 
 /**
@@ -73,10 +75,12 @@ bool I2C_Write(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t leng
  * @param length The number of data bytes to be read to the buffer.
  * @param sendStop Defines if the "stop" condition should be issued after the data have been read.
  *   Set to <i>true</i> if further sequential read/write operations will take place after completing the function.
- * @return <i>true</i> if data reading has completed successfully, otherwise <i>false</i>.
+ * @return A value indicating the I2C operation result. See the <i>I2C_Result</i> enumeration.
  */
-bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
+I2C_Result I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t length, bool sendStop)
 {
+  I2C_CLEAR_ALL_FLAGS(i2c);
+
   // Sending the "(re)start" condition.
   uint16_t attempts = I2C_MAX_ATTEMPTS;
   I2C_SEND_START(i2c);
@@ -85,7 +89,7 @@ bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t lengt
   {
     I2C_CLEAR_START(i2c);
     I2C_SEND_STOP(i2c);
-    return false;
+    return I2C_RESULT_START_FAILED;
   }
 
   // Sending the address with the "read" flag.
@@ -96,7 +100,7 @@ bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t lengt
   {
     I2C_CLEAR_ACK_FAILED_FLAG(i2c);
     I2C_SEND_STOP(i2c);
-    return false;
+    return I2C_RESULT_ADDRESS_FAILED;
   }
 
   // Reading the data bytes.
@@ -118,11 +122,11 @@ bool I2C_Read(I2C_TypeDef *i2c, uint8_t address, uint8_t *buffer, uint16_t lengt
     if (!attempts)
     {
       I2C_SEND_STOP(i2c);
-      return false;
+      return I2C_RESULT_READ_FAILED;
     }
 
     buffer[counter] = I2C_READ_BYTE(i2c);
   }
 
-  return true;
+  return I2C_RESULT_OK;
 }
