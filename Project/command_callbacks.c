@@ -132,6 +132,8 @@ static void UnknownCommand(const Command_Descriptor *commandDescriptor, char *re
  * @brief The command returning the device identifier string.
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
+ * @remarks Command usage:
+ *   @code Id
  */
 static void IdCommand(__unused const Command_Descriptor *descriptor, char *response)
 {
@@ -143,6 +145,8 @@ static void IdCommand(__unused const Command_Descriptor *descriptor, char *respo
  * @brief The command returning the measured climatic data.
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
+ * @remarks Command usage:
+ *   @code Measure P|T|H|All
  */
 static void MeasureCommand(const Command_Descriptor *descriptor, char *response)
 {
@@ -180,13 +184,23 @@ static void MeasureCommand(const Command_Descriptor *descriptor, char *response)
 }
 
 /**
- * @brief The command that reboots the MCU and jumps it to the bootloader. No command response is returned.
+ * @brief The command that requests a software reset of the MCU and jumps to the bootloader if necessary.
  * @param descriptor The pointer to the input command descriptor structure.
  * @param response The output response message buffer.
+ * @remarks Command usage:
+ *   @code Reset Normal|Bootloader
  */
-static void BootloaderCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
+static void ResetCommand(__unused const Command_Descriptor *descriptor, __unused char *response)
 {
-  Project_RequestJumpToBootloader();
+  if (STR_EQUAL(descriptor->param, "Normal"))
+    Project_RequestSoftwareReset(false);
+  else if (STR_EQUAL(descriptor->param, "Bootloader"))
+    Project_RequestSoftwareReset(true);
+  else
+    return (void) sprintf(response, INVALID_PARAMETER_LIST_RESPONSE_FORMAT("%s", "%s"), descriptor->param,
+      "Normal, Bootloader");
+
+  sprintf(response, OK_RESPONSE_FORMAT("Performing a %s software reset shortly..."), descriptor->param);
 }
 
 /**
@@ -207,8 +221,8 @@ Command_Binding Command_Bindings[] = {
     .commandCallback = MeasureCommand
   },
   {
-    .commandName = "Bootloader",
-    .commandCallback = BootloaderCommand
+    .commandName = "Reset",
+    .commandCallback = ResetCommand
   }
 };
 

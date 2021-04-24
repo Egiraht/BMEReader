@@ -29,27 +29,34 @@ typedef void (*Project_Action)();
 BME280_TrimmingParams Project_TrimmingParams;
 
 /**
- * @brief Requests a jump to the bootloader after performing a software reset. This functions does not return.
+ * @brief The flag indicating if a software reset has been requested.
  */
-__NO_RETURN void Project_RequestJumpToBootloader()
-{
-  // Setting the bootloader key value to the backup register.
-  LL_RTC_BAK_SetRegister(RTC, LL_RTC_BKP_DR0, PROJECT_BOOTLOADER_KEY);
+static bool Project_IsResetRequested = false;
 
-  // Requesting a software reset for the MCU.
-  NVIC_SystemReset();
+/**
+ * @brief Requests a software reset of the MCU.
+ * @param jumpToBootloader The flag indicating if it is necessary to jump to the MCU bootloader after performing a
+ *   software reset. If set to <i>false</i>, a normal boot is performed.
+ */
+void Project_RequestSoftwareReset(bool jumpToBootloader)
+{
+  // Setting the bootloader key value in the backup register DR0 if the jumpToBootloader flag is set.
+  if (jumpToBootloader)
+    LL_RTC_BAK_SetRegister(RTC, LL_RTC_BKP_DR0, PROJECT_BOOTLOADER_KEY);
+
+  Project_IsResetRequested = true;
 }
 
 /**
- * @brief Checks if the bootloader jump has been requested, and jumps to it if true.
+ * @brief Checks if a jump to the MCU bootloader has been requested, and jumps to it if true.
  */
 void Project_JumpToBootloaderIfRequested()
 {
-  // Checking if the bootloader key value has been set in the backup register.
+  // Checking if the bootloader key value has been set in the backup register DR0.
   if (LL_RTC_BAK_GetRegister(RTC, LL_RTC_BKP_DR0) != PROJECT_BOOTLOADER_KEY)
     return;
 
-  // Clearing the key value from the backup register.
+  // Clearing the key value from the backup register DR0.
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
   LL_PWR_EnableBkUpAccess();
   LL_RCC_EnableRTC();
@@ -212,6 +219,9 @@ static void Project_ProcessCommand(const char *command)
  */
 void Project_CdcMessageReceived(const char *string, uint16_t length)
 {
+  if (Project_IsResetRequested)
+    return;
+
   static char commandBuffer[CONFIG_MAX_COMMAND_MESSAGE_LENGTH + 1];
   static int16_t commandBufferIndex = 0;
 
@@ -230,6 +240,21 @@ void Project_CdcMessageReceived(const char *string, uint16_t length)
   }
 
   Project_SetLedState(false);
+}
+
+/**
+ * @brief The callback to be processed when a USB CDC transmission is completed.
+ * @param string A pointer to the string containing the received message.
+ * @param length Length of the message in the string.
+ */
+void Project_CdcTransmissionCompleted(__unused const char *string, __unused uint16_t length)
+{
+  // Resets the MCU after the corresponding software reset command response message has been transmitted.
+  if (Project_IsResetRequested)
+  {
+    LL_mDelay(100);
+    NVIC_SystemReset();
+  }
 }
 
 /**
