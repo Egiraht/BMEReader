@@ -26,7 +26,7 @@
 /**
  * @brief Defines the project version.
  */
-#define PROJECT_VERSION "1.0"
+#define PROJECT_VERSION "0.1"
 
 extern BME280_TrimmingParams Project_TrimmingParams;
 
